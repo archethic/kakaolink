@@ -4,7 +4,7 @@
  * This code is licensed under the MIT Licensing Principles.
  */
 
-exports.FileSystem = (function () {
+module.exports.FileSystem = (function () {
    function FileSystem() {
 
    }

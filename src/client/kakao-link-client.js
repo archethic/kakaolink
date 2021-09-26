@@ -19,7 +19,7 @@ module.exports = /** @class */ (function () {
     function KakaoLinkClient(apiKey, url) {
         if(typeof (apiKey || url) !== 'string') throw new TypeError('Either apiKey or url is not a String');
         if(apiKey.length !== 32) throw new TypeError('apiKey must be 32 digits');
-        if(!/^http(s)?\:\/\/.+/.test(url)) throw new TypeError("The url does not match the web url format");
+        if(!/^http(s)?:\/\/.+/.test(url)) throw new TypeError("The url does not match the web url format");
         
         this.apiKey = apiKey;
         this.kakaoAgent = 'sdk/1.25.7 os/javascript lang/ko-kr device/MacIntel origin/' + encodeURIComponent(url || 'https://arthic.dev');
@@ -34,7 +34,7 @@ module.exports = /** @class */ (function () {
     KakaoLinkClient.prototype.login = function (obj) {
         if(obj.saveCookie === true && FileSystem.exists('../../cookie')) {
             this.cookies = FileSystem.read(BasicConfig.cookiePath);
-            return;
+            return true;
         }
         if(typeof (obj.emali || obj.password) !== 'string') throw new TypeError('Either email or password is not a String');
         if(this.apiKey === undefined || this.apiKey === null) throw new Error('apiKey not registered');
@@ -77,17 +77,13 @@ module.exports = /** @class */ (function () {
                 break;
             case -484:
                 throw new CryptoError('CryptoError Contact to Developer');
-                break;
             case -435:
                 throw new AccessError('Please Access Allow Country');
-                break;
             case -450:
                 throw new KakaoLinkLoginError('Email or password is incorrect');
-                break;
             default:
                 throw new KakaoLinkLoginError('Unknown Error with status: ' + JSON.parse(getAuthRes.body()).status);
-                break;
-        };
+        }
 
         this.cookies.putAll(getAuthRes.cookies());
 
@@ -145,7 +141,7 @@ module.exports = /** @class */ (function () {
             if(x.title === room) {
                 id = x.id;
                 count = x.memberCount;
-                return;
+                return null;
             }
         });
 
@@ -179,6 +175,7 @@ module.exports = /** @class */ (function () {
 
     /**
      * logout
+     * @description Please not use this
      * @returns {Boolean | Error}
      */
     KakaoLinkClient.prototype.logout = function () {
