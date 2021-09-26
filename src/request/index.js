@@ -20,7 +20,7 @@
     if(obj.dataType === 'data') {
         if(typeof obj.data === 'string') req.requestBody(obj.data);
         else if(typeof obj.data === 'object') {
-            for(var key in obj.data) {
+            for(let key in obj.data) {
                 req.data(key, obj.data[key].toString());
             }
         }

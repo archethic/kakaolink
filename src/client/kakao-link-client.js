@@ -8,13 +8,13 @@ const { BasicConfig } = require("../config");
 const { KakaoLinkLoginError, CryptoError, AccessError, ApiKeyError, KakaoLinkSendError } = require("../error");
 const { request } = require("../request");
 const { CryptoJS } = require('../util/crypto');
+const { FileSystem } = require("../util/file-system");
 
 module.exports = /** @class */ (function () {
     /**
      * Init
      * @param {String} apiKey JSKey
      * @param {String} url Web Platform Url
-     * @param {JSON} cookies don't use it
      */
     function KakaoLinkClient(apiKey, url) {
         if(typeof (apiKey || url) !== 'string') throw new TypeError('Either apiKey or url is not a String');
@@ -28,18 +28,21 @@ module.exports = /** @class */ (function () {
 
     /**
      * Login
-     * @param {String} email Kakao Accounts Email
-     * @param {String} password Kakao Accounts Password
+     * @param {{emali:string;password:string;keepLogin:boolean;saveCookie:boolean}} obj Kakao Accounts params
      * @returns {boolean | Error}
      */
-    KakaoLinkClient.prototype.login = function (email, password) {
-        if(typeof (email || password) !== 'string') throw new TypeError('Either email or password is not a String');
+    KakaoLinkClient.prototype.login = function (obj) {
+        if(obj.saveCookie === true && FileSystem.exists('../../cookie')) {
+            this.cookies = FileSystem.read(BasicConfig.cookiePath);
+            return;
+        }
+        if(typeof (obj.emali || obj.password) !== 'string') throw new TypeError('Either email or password is not a String');
         if(this.apiKey === undefined || this.apiKey === null) throw new Error('apiKey not registered');
         const getLoginRes = request({
             method: 'GET',
             url: BasicConfig.accountsUrl,
             referer: 'https://accounts.kakao.com/'
-        });
+        }); //404 patch
 
         if(getLoginRes.statusCode() !== 200) throw new KakaoLinkLoginError('Login Failed with status: ' + getLoginRes.statusCode());
 
@@ -60,7 +63,7 @@ module.exports = /** @class */ (function () {
                 webview_v: '2',
                 email: CryptoJS.AES.encrypt(email, cryptoKey),
                 password: CryptoJS.AES.encrypt(password, cryptoKey),
-                stay_signed_in: 'true',
+                stay_signed_in: String(obj.keepLogin) || 'true',
                 continue: decodeURIComponent(this.referer.split('=')[1]),
                 third: 'false',
                 k: 'true',
@@ -88,6 +91,8 @@ module.exports = /** @class */ (function () {
 
         this.cookies.putAll(getAuthRes.cookies());
 
+        FileSystem.write(BasicConfig.cookiePath, this.cookies.toString());
+
         return true;
     }
 
@@ -98,6 +103,7 @@ module.exports = /** @class */ (function () {
      * content: { title: string, description: string, image_url: string, link: any }, social: { likeCount: number, commentCount: number, shareCount: number }, 
      * buttons: [{title: string, link: { web_url: string, moblie_web_url: string }}] } }} obj Kakao Send Info
      * @param {'custom' | 'default'} type send Type
+     * @return {{success: boolean, status: number}}
      */
     KakaoLinkClient.prototype.sendLink = function (room, obj, type) {
         if(!obj['link_ver']) obj['link_ver'] = '4.0'
@@ -165,7 +171,10 @@ module.exports = /** @class */ (function () {
             dataType: 'requestBody'
         });
 
-        if(sendLink.statusCode() !== 200) throw new KakaoLinkSendError('Unknown Error with status: ' + sendLink.statusCode());
+        // if(sendLink.statusCode() !== 200) throw new KakaoLinkSendError('Unknown Error with status: ' + sendLink.statusCode());
+        if(sendLink.statusCode() !== 200) return { success: false, status: sendLink.statusCode() }
+
+        return { success: true, status: sendLink.statusCode() }
     }
 
     /**

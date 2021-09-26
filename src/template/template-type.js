@@ -5,6 +5,9 @@
  */
 
 exports.TemplateType = {
-    CUSTOM: 'custom',
-    DEFAULT: 'default'
+    FEED: 'feed',
+    LIST: 'list',
+    LOCATION: 'location',
+    COMMERCE: 'commerce',
+    TEXT: 'text',
 }

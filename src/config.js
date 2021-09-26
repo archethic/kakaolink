@@ -11,5 +11,6 @@ exports.BasicConfig = {
     getAuthUrl: "https://accounts.kakao.com/weblogin/authenticate.json",
     getChatData: "https://sharer.kakao.com/api/talk/chats",
     sendLinkUrl: 'https://sharer.kakao.com/api/talk/message/link',
-    accountsUrl: 'https://accounts.kakao.com/login?continue=https%3A%2F%2Faccounts.kakao.com%2Fweblogin%2Faccount%2Finfo'
+    accountsUrl: 'https://accounts.kakao.com/login?continue=https%3A%2F%2Faccounts.kakao.com%2Fweblogin%2Faccount%2Finfo',
+    cookiePath: '../../cookie'
 }
