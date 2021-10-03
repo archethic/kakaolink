@@ -15,7 +15,7 @@ module.exports.FileSystem = (function () {
      * @return {boolean}
      */
    FileSystem.exists = function (filepath) {
-       return FileStream.read(filepath) === null;
+       return FileStream.read(filepath) !== null;
    }
 
    FileSystem.write = FileStream.write;
